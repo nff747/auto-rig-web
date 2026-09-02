@@ -117,7 +117,7 @@ self.onmessage = async (e: MessageEvent) => {
       self.postMessage({ type: 'INIT_DONE', msgId });
     } 
     else if (type === 'RIG') {
-      const { posBuffer, indicesBuffer, weightsBuffer, falloff } = payload;
+      const { mode, posBuffer, indicesBuffer, weightsBuffer, falloff } = payload;
       const positions = new Float32Array(posBuffer);
       const skinIndices = new Uint16Array(indicesBuffer);
       const skinWeights = new Float32Array(weightsBuffer);
@@ -125,7 +125,15 @@ self.onmessage = async (e: MessageEvent) => {
       const rig = await detectJoints(positions);
       calculateBoneWeights(positions, rig, falloff, skinIndices, skinWeights);
 
-      self.postMessage({ type: 'RIG_DONE', payload: { rig }, msgId });
+      if (mode === 'TRANSFERABLE') {
+        self.postMessage({
+          type: 'RIG_DONE',
+          payload: { rig, indicesBuffer, weightsBuffer },
+          msgId
+        }, [indicesBuffer, weightsBuffer]);
+      } else {
+        self.postMessage({ type: 'RIG_DONE', payload: { rig }, msgId });
+      }
     }
   } catch (err: any) {
     self.postMessage({ type: 'ERROR', payload: err.message, msgId });

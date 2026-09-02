@@ -21,7 +21,6 @@ export class RiggingEngine {
     
     // Fallback URL resolving for both Vite and plain build output
     const workerUrl = new URL(
-      // Vite and modern bundlers
       // @ts-ignore
       import.meta.env ? '../worker/rigging.worker.ts' : './worker/rigging.worker.js', 
       import.meta.url
@@ -70,6 +69,11 @@ export class RiggingEngine {
     });
   }
 
+  /**
+   * Dual-Pipe Autonomous Auto-Rigging:
+   * 1. If crossOriginIsolated & SharedArrayBuffer are available: zero-copy shared memory.
+   * 2. Otherwise: zero-copy Transferable ArrayBuffers (works anywhere without COOP/COEP headers).
+   */
   async autoRig(mesh: THREE.Mesh): Promise<THREE.SkinnedMesh> {
     if (!this.isInitialized || !this.worker) throw new Error('[AutoRig] Engine not initialized.');
 
@@ -79,19 +83,19 @@ export class RiggingEngine {
     const positions = geometry.attributes.position.array as Float32Array;
     const vertexCount = positions.length / 3;
 
-    // Use SharedArrayBuffer to avoid copies if supported, otherwise fallback to copying to ArrayBuffer and transferring
-    let posBuffer: ArrayBuffer | SharedArrayBuffer;
-    let indicesBuffer: ArrayBuffer | SharedArrayBuffer;
-    let weightsBuffer: ArrayBuffer | SharedArrayBuffer;
+    const isSABSupported = typeof SharedArrayBuffer !== 'undefined' && 
+      (typeof crossOriginIsolated !== 'undefined' ? crossOriginIsolated : false);
 
-    if (typeof SharedArrayBuffer !== 'undefined') {
-      posBuffer = new SharedArrayBuffer(positions.length * Float32Array.BYTES_PER_ELEMENT);
+    if (isSABSupported) {
+      // Tier 1: SharedArrayBuffer Zero-Copy
+      const posBuffer = new SharedArrayBuffer(positions.length * Float32Array.BYTES_PER_ELEMENT);
       new Float32Array(posBuffer).set(positions);
       
-      indicesBuffer = new SharedArrayBuffer(vertexCount * 4 * Uint16Array.BYTES_PER_ELEMENT);
-      weightsBuffer = new SharedArrayBuffer(vertexCount * 4 * Float32Array.BYTES_PER_ELEMENT);
+      const indicesBuffer = new SharedArrayBuffer(vertexCount * 4 * Uint16Array.BYTES_PER_ELEMENT);
+      const weightsBuffer = new SharedArrayBuffer(vertexCount * 4 * Float32Array.BYTES_PER_ELEMENT);
       
       const payload = await this.postWorkerMessage('RIG', {
+        mode: 'SAB',
         posBuffer,
         indicesBuffer,
         weightsBuffer,
@@ -99,11 +103,33 @@ export class RiggingEngine {
       });
       
       const rig = payload.rig as SkeletonRig;
-      console.log('[AutoRig] Applying procedural skin weights...');
-      return this.analyzer.bindSkeletonWithWeights(mesh, rig, new Uint16Array(indicesBuffer), new Float32Array(weightsBuffer));
-      
+      console.log('[AutoRig] Applying procedural skin weights (SAB mode)...');
+      return this.analyzer.bindSkeletonWithWeights(
+        mesh, 
+        rig, 
+        new Uint16Array(indicesBuffer), 
+        new Float32Array(weightsBuffer)
+      );
     } else {
-      throw new Error('[AutoRig] SharedArrayBuffer is required for zero-copy transfers.');
+      // Tier 2: Universal Transferable ArrayBuffer Zero-Copy (No CORS/Spectre headers required)
+      const posBuffer = new Float32Array(positions).buffer;
+      const indicesBuffer = new ArrayBuffer(vertexCount * 4 * Uint16Array.BYTES_PER_ELEMENT);
+      const weightsBuffer = new ArrayBuffer(vertexCount * 4 * Float32Array.BYTES_PER_ELEMENT);
+
+      const payload = await this.postWorkerMessage('RIG', {
+        mode: 'TRANSFERABLE',
+        posBuffer,
+        indicesBuffer,
+        weightsBuffer,
+        falloff: this.options.skinningFalloff ?? 2.0
+      }, [posBuffer, indicesBuffer, weightsBuffer]);
+
+      const rig = payload.rig as SkeletonRig;
+      const resultIndices = new Uint16Array(payload.indicesBuffer);
+      const resultWeights = new Float32Array(payload.weightsBuffer);
+
+      console.log('[AutoRig] Applying procedural skin weights (Transferable mode)...');
+      return this.analyzer.bindSkeletonWithWeights(mesh, rig, resultIndices, resultWeights);
     }
   }
 

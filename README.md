@@ -1,5 +1,8 @@
 <div align="center">
 
+<img src="assets/banner.jpg" width="800" alt="Project Banner">
+
+
 # 🤖 auto-rig-web
 
 **Zero-Click, Browser-Local Character Rigging Pipeline**

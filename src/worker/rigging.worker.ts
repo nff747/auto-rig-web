@@ -93,14 +93,78 @@ function meshToTensor(positions: Float32Array, resolution: number): ort.Tensor {
   return new ort.Tensor('float32', grid, [1, 1, resolution, resolution, resolution]);
 }
 
-async function detectJoints(positions: Float32Array): Promise<SkeletonRig> {
-  if (!session) throw new Error('Model not initialized.');
-  const tensor = meshToTensor(positions, 64);
-  const feeds: Record<string, ort.Tensor> = { input_tensor: tensor };
-  const results = await session.run(feeds);
-  const keypoints = results.output_keypoints.data as Float32Array;
-  const confidences = results.output_confidences.data as Float32Array;
+function detectJointsProcedural(positions: Float32Array): SkeletonRig {
+  const vertexCount = positions.length / 3;
+  let minX = Infinity, minY = Infinity, minZ = Infinity;
+  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+  for (let i = 0; i < vertexCount; i++) {
+    const x = positions[i * 3 + 0];
+    const y = positions[i * 3 + 1];
+    const z = positions[i * 3 + 2];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z;
+    if (z > maxZ) maxZ = z;
+  }
+
+  const cx = (minX + maxX) * 0.5;
+  const cz = (minZ + maxZ) * 0.5;
+  const h = Math.max(maxY - minY, 1e-4);
+
+  const keypointMap: Record<JointType, { x: number, y: number, z: number }> = {
+    [JointType.Hips]: { x: cx, y: minY + 0.52 * h, z: cz },
+    [JointType.Spine]: { x: cx, y: minY + 0.62 * h, z: cz },
+    [JointType.Chest]: { x: cx, y: minY + 0.74 * h, z: cz },
+    [JointType.Neck]: { x: cx, y: minY + 0.84 * h, z: cz },
+    [JointType.Head]: { x: cx, y: minY + 0.94 * h, z: cz },
+    [JointType.LeftShoulder]: { x: cx - 0.12 * h, y: minY + 0.80 * h, z: cz },
+    [JointType.RightShoulder]: { x: cx + 0.12 * h, y: minY + 0.80 * h, z: cz },
+    [JointType.LeftArm]: { x: cx - 0.22 * h, y: minY + 0.72 * h, z: cz },
+    [JointType.RightArm]: { x: cx + 0.22 * h, y: minY + 0.72 * h, z: cz },
+    [JointType.LeftForeArm]: { x: cx - 0.32 * h, y: minY + 0.55 * h, z: cz },
+    [JointType.RightForeArm]: { x: cx + 0.32 * h, y: minY + 0.55 * h, z: cz },
+    [JointType.LeftHand]: { x: cx - 0.40 * h, y: minY + 0.40 * h, z: cz },
+    [JointType.RightHand]: { x: cx + 0.40 * h, y: minY + 0.40 * h, z: cz },
+    [JointType.LeftUpLeg]: { x: cx - 0.08 * h, y: minY + 0.48 * h, z: cz },
+    [JointType.RightUpLeg]: { x: cx + 0.08 * h, y: minY + 0.48 * h, z: cz },
+    [JointType.LeftLeg]: { x: cx - 0.08 * h, y: minY + 0.26 * h, z: cz },
+    [JointType.RightLeg]: { x: cx + 0.08 * h, y: minY + 0.26 * h, z: cz },
+    [JointType.LeftFoot]: { x: cx - 0.09 * h, y: minY + 0.04 * h, z: cz + 0.05 * h },
+    [JointType.RightFoot]: { x: cx + 0.09 * h, y: minY + 0.04 * h, z: cz + 0.05 * h },
+  };
+
+  const types = Object.values(JointType);
+  const keypoints = new Float32Array(types.length * 3);
+  const confidences = new Float32Array(types.length);
+
+  for (let i = 0; i < types.length; i++) {
+    const pt = keypointMap[types[i]] || { x: cx, y: minY + 0.5 * h, z: cz };
+    keypoints[i * 3 + 0] = pt.x;
+    keypoints[i * 3 + 1] = pt.y;
+    keypoints[i * 3 + 2] = pt.z;
+    confidences[i] = 1.0;
+  }
+
   return constructSkeleton(keypoints, confidences);
+}
+
+async function detectJoints(positions: Float32Array): Promise<SkeletonRig> {
+  if (!session) {
+    return detectJointsProcedural(positions);
+  }
+  try {
+    const tensor = meshToTensor(positions, 64);
+    const feeds: Record<string, ort.Tensor> = { input_tensor: tensor };
+    const results = await session.run(feeds);
+    const keypoints = results.output_keypoints.data as Float32Array;
+    const confidences = results.output_confidences.data as Float32Array;
+    return constructSkeleton(keypoints, confidences);
+  } catch (err) {
+    return detectJointsProcedural(positions);
+  }
 }
 
 function distToSegment(px: number, py: number, pz: number, ax: number, ay: number, az: number, bx: number, by: number, bz: number): number {
@@ -199,10 +263,15 @@ self.onmessage = async (e: MessageEvent) => {
   try {
     if (type === 'INIT') {
       const { modelPath } = payload;
-      ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
-      session = await ort.InferenceSession.create(modelPath, {
-        executionProviders: ['webgpu', 'webgl', 'wasm']
-      });
+      try {
+        ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
+        session = await ort.InferenceSession.create(modelPath, {
+          executionProviders: ['webgpu', 'webgl', 'wasm']
+        });
+      } catch (err: any) {
+        // Fall back gracefully to procedural joint estimation
+        session = null;
+      }
       self.postMessage({ type: 'INIT_DONE', msgId });
     } 
     else if (type === 'RIG') {

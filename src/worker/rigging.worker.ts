@@ -46,6 +46,50 @@ function constructSkeleton(keypoints: Float32Array, confidences: Float32Array): 
 
 function meshToTensor(positions: Float32Array, resolution: number): ort.Tensor {
   const grid = new Float32Array(1 * 1 * resolution * resolution * resolution);
+  const vertexCount = positions.length / 3;
+
+  if (vertexCount === 0) {
+    return new ort.Tensor('float32', grid, [1, 1, resolution, resolution, resolution]);
+  }
+
+  // 1. Compute Axis-Aligned Bounding Box (AABB)
+  let minX = Infinity, minY = Infinity, minZ = Infinity;
+  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+  for (let i = 0; i < vertexCount; i++) {
+    const x = positions[i * 3 + 0];
+    const y = positions[i * 3 + 1];
+    const z = positions[i * 3 + 2];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z;
+    if (z > maxZ) maxZ = z;
+  }
+
+  const rangeX = Math.max(maxX - minX, 1e-5);
+  const rangeY = Math.max(maxY - minY, 1e-5);
+  const rangeZ = Math.max(maxZ - minZ, 1e-5);
+  const maxRange = Math.max(rangeX, rangeY, rangeZ);
+  const scale = (resolution - 2) / maxRange;
+
+  // 2. Voxelize mesh surface into 3D density grid
+  for (let i = 0; i < vertexCount; i++) {
+    const x = positions[i * 3 + 0];
+    const y = positions[i * 3 + 1];
+    const z = positions[i * 3 + 2];
+
+    const vx = Math.floor((x - minX) * scale) + 1;
+    const vy = Math.floor((y - minY) * scale) + 1;
+    const vz = Math.floor((z - minZ) * scale) + 1;
+
+    if (vx >= 0 && vx < resolution && vy >= 0 && vy < resolution && vz >= 0 && vz < resolution) {
+      const idx = vx + vy * resolution + vz * resolution * resolution;
+      grid[idx] = Math.min(1.0, grid[idx] + 0.25);
+    }
+  }
+
   return new ort.Tensor('float32', grid, [1, 1, resolution, resolution, resolution]);
 }
 
@@ -59,6 +103,30 @@ async function detectJoints(positions: Float32Array): Promise<SkeletonRig> {
   return constructSkeleton(keypoints, confidences);
 }
 
+function distToSegment(px: number, py: number, pz: number, ax: number, ay: number, az: number, bx: number, by: number, bz: number): number {
+  const abx = bx - ax;
+  const aby = by - ay;
+  const abz = bz - az;
+  const apx = px - ax;
+  const apy = py - ay;
+  const apz = pz - az;
+
+  const abLenSq = abx * abx + aby * aby + abz * abz;
+  if (abLenSq < 1e-8) {
+    return Math.sqrt(apx * apx + apy * apy + apz * apz);
+  }
+
+  const t = Math.max(0, Math.min(1, (apx * abx + apy * aby + apz * abz) / abLenSq));
+  const projX = ax + t * abx;
+  const projY = ay + t * aby;
+  const projZ = az + t * abz;
+
+  const dx = px - projX;
+  const dy = py - projY;
+  const dz = pz - projZ;
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+
 function calculateBoneWeights(
   positions: Float32Array,
   rig: SkeletonRig,
@@ -70,6 +138,32 @@ function calculateBoneWeights(
   const boneTypes = Object.keys(rig.joints) as JointType[];
   const bonePositions = boneTypes.map(type => rig.joints[type].position);
 
+  // Build bone segments from hierarchy
+  const segments: { boneIdx: number; ax: number; ay: number; az: number; bx: number; by: number; bz: number }[] = [];
+  for (let b = 0; b < boneTypes.length; b++) {
+    const parentType = boneTypes[b];
+    const parentPos = rig.joints[parentType].position;
+    const children = rig.hierarchy[parentType] || [];
+    
+    if (children.length > 0) {
+      for (const childType of children) {
+        const childPos = rig.joints[childType].position;
+        segments.push({
+          boneIdx: b,
+          ax: parentPos.x, ay: parentPos.y, az: parentPos.z,
+          bx: childPos.x, by: childPos.y, bz: childPos.z,
+        });
+      }
+    } else {
+      // Leaf joint: point capsule
+      segments.push({
+        boneIdx: b,
+        ax: parentPos.x, ay: parentPos.y, az: parentPos.z,
+        bx: parentPos.x, by: parentPos.y, bz: parentPos.z,
+      });
+    }
+  }
+
   for (let i = 0; i < vertexCount; i++) {
     const vx = positions[i * 3 + 0];
     const vy = positions[i * 3 + 1];
@@ -77,15 +171,10 @@ function calculateBoneWeights(
     
     const distances: { index: number, weight: number }[] = [];
     
-    for (let b = 0; b < bonePositions.length; b++) {
-      const bPos = bonePositions[b];
-      const dx = vx - bPos.x;
-      const dy = vy - bPos.y;
-      const dz = vz - bPos.z;
-      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      
+    for (const seg of segments) {
+      const dist = distToSegment(vx, vy, vz, seg.ax, seg.ay, seg.az, seg.bx, seg.by, seg.bz);
       const weight = 1.0 / Math.pow(dist + 0.001, falloff);
-      distances.push({ index: b, weight });
+      distances.push({ index: seg.boneIdx, weight });
     }
     
     distances.sort((a, b) => b.weight - a.weight);

@@ -272,7 +272,7 @@ self.onmessage = async (e: MessageEvent) => {
         // Fall back gracefully to procedural joint estimation
         session = null;
       }
-      self.postMessage({ type: 'INIT_DONE', msgId });
+      (self as any).postMessage({ type: 'INIT_DONE', msgId });
     } 
     else if (type === 'RIG') {
       const { mode, posBuffer, indicesBuffer, weightsBuffer, falloff } = payload;
@@ -284,16 +284,16 @@ self.onmessage = async (e: MessageEvent) => {
       calculateBoneWeights(positions, rig, falloff, skinIndices, skinWeights);
 
       if (mode === 'TRANSFERABLE') {
-        self.postMessage({
+        (self as any).postMessage({
           type: 'RIG_DONE',
           payload: { rig, indicesBuffer, weightsBuffer },
           msgId
         }, [indicesBuffer, weightsBuffer]);
       } else {
-        self.postMessage({ type: 'RIG_DONE', payload: { rig }, msgId });
+        (self as any).postMessage({ type: 'RIG_DONE', payload: { rig }, msgId });
       }
     }
   } catch (err: any) {
-    self.postMessage({ type: 'ERROR', payload: err.message, msgId });
+    (self as any).postMessage({ type: 'ERROR', payload: err.message, msgId });
   }
 };

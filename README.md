@@ -33,6 +33,19 @@ In interactive 3D web platforms (metaverses, configurators, UGC gaming), empower
 
 ---
 
+
+## Live Demo
+
+Try the interactive demo directly in your browser:
+[![Edit auto-rig-web Demo](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/auto-rig-web-demo-placeholder)
+
+<iframe src="https://codesandbox.io/embed/auto-rig-web-demo-placeholder?fontsize=14&hidenavigation=1&theme=dark"
+  style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+  title="auto-rig-web-demo"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+></iframe>
+
 ## Architecture
 
 ```
@@ -61,6 +74,28 @@ In interactive 3D web platforms (metaverses, configurators, UGC gaming), empower
 
 ---
 
+
+### Skeleton Layout (19-Bones)
+
+```text
+       [Head]
+         |
+       [Neck]
+         |
+    --[Chest]--
+   /     |     \
+[L.Sh] [Spine] [R.Sh]
+  |      |       |
+[L.Arm] [Hips] [R.Arm]
+  |     /    \    |
+[L.FA] /      \ [R.FA]
+  | [L.UpLeg] [R.UpLeg] |
+[L.Hnd]  |      |   [R.Hnd]
+      [L.Leg] [R.Leg]
+         |      |
+     [L.Foot] [R.Foot]
+```
+
 ## Tech Stack
 
 This library is engineered for performance at the edge:
@@ -73,57 +108,69 @@ This library is engineered for performance at the edge:
 
 ---
 
-## API Usage
 
-### 1. Installation
+## API Reference
 
-```bash
-npm install auto-rig-web three onnxruntime-web
-```
+The primary export of `auto-rig-web` is the `AutoRigger` class.
 
-### 2. Auto-Rigging a Mesh
+### `AutoRigger`
 
 ```typescript
-import * as THREE from 'three';
-import { RiggingEngine, JointType } from 'auto-rig-web';
+import { AutoRigger } from 'auto-rig-web';
 
-// 1. Initialize the engine (loads the ONNX model via WebGPU)
-const engine = new RiggingEngine({
-  modelPath: '/models/joint_estimator_quantized.onnx',
-  skinningFalloff: 2.5
-});
-await engine.init();
-
-// 2. Load your static mesh (e.g., via GLTFLoader)
-const staticMesh = myLoadedGltf.scene.children[0] as THREE.Mesh;
-
-// 3. Boom. Rigged.
-const skinnedMesh = await engine.autoRig(staticMesh);
-scene.add(skinnedMesh);
+const rigger = new AutoRigger({ skinningFalloff: 2.5 });
+await rigger.init();
 ```
 
-### 3. Applying Inverse Kinematics (IK)
+#### `AutoRigger.rig(mesh: THREE.Mesh): Promise<THREE.SkinnedMesh>`
+Analyzes the input static mesh, predicts joint locations, constructs a skeleton, and calculates procedural skin weights. Returns an IK-ready `SkinnedMesh`.
 
-Once rigged, easily pose the character by moving targets.
-
+#### `AutoRigger.setIKTarget(target: IKTarget): void`
+Assigns a 3D target for a specific joint to pull towards.
 ```typescript
-// Create a visual target (e.g., a red sphere to control the hand)
-const handTarget = new THREE.Vector3(1, 1, 0);
+rigger.setIKTarget({ joint: JointType.LeftHand, position: new THREE.Vector3(1, 2, 0), influence: 1.0 });
+```
 
-// Assign the target to the IK Solver
-engine.setIKTarget({
-  joint: JointType.RightHand,
-  position: handTarget,
-  influence: 1.0 // 0.0 to 1.0 interpolation
-});
+#### `AutoRigger.animate(): void`
+Solves the Inverse Kinematics chains for the current frame. Call this inside your requestAnimationFrame loop.
 
-// Update the solver in your render loop
+
+## Framework Integration
+
+### React + Three.js (@react-three/fiber)
+```jsx
+import { useFrame } from '@react-three/fiber';
+import { AutoRigger } from 'auto-rig-web';
+
+const rigger = new AutoRigger();
+// ... inside component ...
+const riggedMesh = await rigger.rig(staticMesh);
+useFrame(() => rigger.animate());
+```
+
+### Vue + Three.js (TresJS)
+```vue
+<script setup>
+import { useRenderLoop } from '@tresjs/core';
+import { AutoRigger } from 'auto-rig-web';
+
+const rigger = new AutoRigger();
+const riggedMesh = await rigger.rig(staticMesh);
+useRenderLoop().onLoop(() => rigger.animate());
+</script>
+```
+
+### Vanilla JS
+```javascript
+import { AutoRigger } from 'auto-rig-web';
+
+const rigger = new AutoRigger();
+await rigger.init();
+const riggedMesh = await rigger.rig(mesh);
+
 function animate() {
   requestAnimationFrame(animate);
-  
-  // Solve IK chains for the current frame
-  engine.updateIK(skinnedMesh.skeleton);
-  
+  rigger.animate();
   renderer.render(scene, camera);
 }
 animate();

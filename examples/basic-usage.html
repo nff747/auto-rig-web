@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>auto-rig-web Basic Usage</title>
+  <style>
+    body { margin: 0; overflow: hidden; background-color: #111; color: white; font-family: sans-serif; }
+    #info { position: absolute; top: 10px; left: 10px; z-index: 100; pointer-events: none; }
+  </style>
+  <!-- Import maps for Three.js and our local bundle -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+        "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.webgpu.mjs",
+        "auto-rig-web": "../dist/index.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="info">
+    <h2>auto-rig-web demo</h2>
+    <p>Procedural skinning and IK solving in browser.</p>
+  </div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { AutoRigger, JointType } from 'auto-rig-web';
+
+    // 1. Scene Setup
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x222222);
+    
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.5, 3);
+    
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1, 0);
+    controls.update();
+    
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(2, 2, 2);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0x404040));
+
+    // 2. Create a dummy humanoid-ish static mesh to rig
+    const geometry = new THREE.CylinderGeometry(0.2, 0.2, 1.8, 16, 16);
+    geometry.translate(0, 0.9, 0);
+    const material = new THREE.MeshStandardMaterial({ color: 0x00ff88, wireframe: true });
+    const staticMesh = new THREE.Mesh(geometry, material);
+
+    // 3. Initialize AutoRigger
+    const rigger = new AutoRigger({ skinningFalloff: 2.0 });
+    
+    async function init() {
+      await rigger.init();
+      
+      // 4. Rig the mesh
+      const skinnedMesh = await rigger.rig(staticMesh);
+      scene.add(skinnedMesh);
+      
+      // Optional: visualize bones
+      const helper = new THREE.SkeletonHelper(skinnedMesh);
+      scene.add(helper);
+
+      // 5. Add an IK target (e.g. move head)
+      let time = 0;
+      
+      function animate() {
+        requestAnimationFrame(animate);
+        time += 0.05;
+        
+        // Move target in a circle
+        const targetPos = new THREE.Vector3(
+          Math.sin(time) * 0.3, 
+          1.8 + Math.cos(time) * 0.2, 
+          0
+        );
+        
+        rigger.setIKTarget({
+          joint: JointType.Head,
+          position: targetPos,
+          influence: 1.0
+        });
+        
+        // Solve IK
+        rigger.animate();
+        
+        renderer.render(scene, camera);
+      }
+      animate();
+    }
+    
+    init().catch(console.error);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

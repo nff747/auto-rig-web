@@ -3,13 +3,14 @@ import { MeshAnalyzer } from '../topology/MeshAnalyzer';
 import { ProceduralIK } from '../ik/ProceduralIK';
 import { RiggingOptions, IKTarget, SkeletonRig } from '../types';
 
-export class RiggingEngine {
+export class AutoRigger {
   private analyzer: MeshAnalyzer;
   private ikSolver: ProceduralIK;
   private worker: Worker | null = null;
   private isInitialized = false;
   private msgIdCounter = 0;
   private pendingRequests = new Map<number, { resolve: Function, reject: Function }>();
+  private activeSkeleton?: THREE.Skeleton;
 
   constructor(private options: RiggingOptions = {}) {
     this.analyzer = new MeshAnalyzer();
@@ -22,7 +23,7 @@ export class RiggingEngine {
     // Fallback URL resolving for both Vite and plain build output
     const workerUrl = new URL(
       // @ts-ignore
-      import.meta.env ? '../worker/rigging.worker.ts' : './worker/rigging.worker.js', 
+      import.meta.env ? '../worker/rigWorker.ts' : './worker/rigWorker.js', 
       import.meta.url
     );
     this.worker = new Worker(workerUrl, { type: 'module' });
@@ -74,7 +75,7 @@ export class RiggingEngine {
    * 1. If crossOriginIsolated & SharedArrayBuffer are available: zero-copy shared memory.
    * 2. Otherwise: zero-copy Transferable ArrayBuffers (works anywhere without COOP/COEP headers).
    */
-  async autoRig(mesh: THREE.Mesh): Promise<THREE.SkinnedMesh> {
+  async rig(mesh: THREE.Mesh): Promise<THREE.SkinnedMesh> {
     if (!this.isInitialized || !this.worker) throw new Error('[AutoRig] Engine not initialized.');
 
     console.log('[AutoRig] Analyzing topology & detecting joints in Worker...');
@@ -104,12 +105,14 @@ export class RiggingEngine {
       
       const rig = payload.rig as SkeletonRig;
       console.log('[AutoRig] Applying procedural skin weights (SAB mode)...');
-      return this.analyzer.bindSkeletonWithWeights(
+      const skinnedMesh = this.analyzer.bindSkeletonWithWeights(
         mesh, 
         rig, 
         new Uint16Array(indicesBuffer), 
         new Float32Array(weightsBuffer)
       );
+      this.activeSkeleton = skinnedMesh.skeleton;
+      return skinnedMesh;
     } else {
       // Tier 2: Universal Transferable ArrayBuffer Zero-Copy (No CORS/Spectre headers required)
       const posBuffer = new Float32Array(positions).buffer;
@@ -128,16 +131,20 @@ export class RiggingEngine {
       const resultIndices = new Uint16Array(payload.indicesBuffer);
       const resultWeights = new Float32Array(payload.weightsBuffer);
 
-      console.log('[AutoRig] Applying procedural skin weights (Transferable mode)...');
-      return this.analyzer.bindSkeletonWithWeights(mesh, rig, resultIndices, resultWeights);
+      const skinnedMesh = this.analyzer.bindSkeletonWithWeights(mesh, rig, resultIndices, resultWeights);
+      this.activeSkeleton = skinnedMesh.skeleton;
+      return skinnedMesh;
     }
   }
 
-  updateIK(skeleton: THREE.Skeleton): void {
-    this.ikSolver.solve(skeleton);
+  animate(): void {
+    if (this.activeSkeleton) {
+      this.ikSolver.solve(this.activeSkeleton);
+    }
   }
 
   setIKTarget(target: IKTarget): void {
     this.ikSolver.addTarget(target);
   }
 }
+

@@ -23,22 +23,20 @@ License: MIT (commercial use welcome with credit)
 
 ---
 
-## 2. Twitter / X Post
+## 2. Twitter / X Post (Under 280 chars - no subscription needed)
 ```text
-I built auto-rig-web: zero-server 3D character auto-rigging inside a Web Worker.
+I built auto-rig-web: 3D auto-rigging in a Web Worker.
 
-Drop in any raw .obj/.gltf ➔ rigged SkinnedMesh in 500ms.
+Drop any .obj/.gltf -> rigged mesh in 500ms.
 
-⚡ Vitruvian 19-bone joint estimation
-🦴 Procedural capsule skin weights
-🎯 Real-time CCDIK solver at 60 FPS
-📦 100% client-side (no backend/server cost)
+- 19-bone humanoid rig
+- Procedural capsule skinning
+- Real-time CCDIK solver (60 FPS)
+- 100% client-side (MIT)
 
-MIT Licensed (free commercial use).
+https://github.com/nff747/auto-rig-web
 
-⭐ https://github.com/nff747/auto-rig-web
-
-#threejs #webgpu #gamedev #webgl
+#threejs #webgl
 ```
 
 ---

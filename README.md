@@ -7,6 +7,7 @@
 
 **Zero-Click, Browser-Local Character Rigging Pipeline**
 
+[![Powered by nff747](https://img.shields.io/badge/Powered%20by-nff747-111111?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nff747)
 [![License: MIT](https://img.shields.io/badge/License-MIT-FF0055.svg?style=for-the-badge)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![ONNX Runtime](https://img.shields.io/badge/ONNX_WebGPU-005CED.svg?style=for-the-badge&logo=onnx&logoColor=white)]()
@@ -133,3 +134,18 @@ animate();
 ## License
 
 [MIT](LICENSE) — iKi / Frozen Flame
+
+---
+
+## 📜 Open Source & Commercial Use (MIT)
+
+This project is 100% open-source software under the **[MIT License](LICENSE)**.
+
+### 💼 Commercial Use & Free Redistribution
+You are explicitly permitted to use, modify, fork, integrate, package, and sell commercial products or SaaS built using this engine with **one visible attribution requirement**:
+> **Attribution Requirement**: You must include a visible credit to **nff747** in your application (e.g., `Powered by nff747` linking to [https://github.com/nff747](https://github.com/nff747) in your application UI, footer, about modal, or documentation).
+
+```html
+<!-- Example visible footer attribution -->
+<p>Powered by <a href="https://github.com/nff747" target="_blank">nff747</a></p>
+```

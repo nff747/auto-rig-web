@@ -137,6 +137,13 @@ export class AutoRigger {
     }
   }
 
+  /**
+   * Alias for rig(mesh) for backward compatibility.
+   */
+  async autoRig(mesh: THREE.Mesh): Promise<THREE.SkinnedMesh> {
+    return this.rig(mesh);
+  }
+
   animate(): void {
     if (this.activeSkeleton) {
       this.ikSolver.solve(this.activeSkeleton);
@@ -147,4 +154,6 @@ export class AutoRigger {
     this.ikSolver.addTarget(target);
   }
 }
+
+export { AutoRigger as RiggingEngine };
 

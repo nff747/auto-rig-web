@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
-import { RiggingEngine } from '../src/core/RiggingEngine';
+import { AutoRigger, RiggingEngine } from '../src/core/AutoRigger';
 import { JointType } from '../src/types';
 
 class MockWorker {

@@ -1,4 +1,8 @@
-export { AutoRigger, RiggingEngine } from './core/AutoRigger';
-export { ProceduralIK as IKSolver } from './ik/ProceduralIK';
-export { JointType } from './types';
-export type { SkeletonRig as RigResult, IKTarget, RiggingOptions, Joint as JointMap } from './types';
+export * from './math/Vec3';
+export * from './math/Vertex';
+export * from './math/Bone';
+export * from './math/Distance';
+export * from './math/HeatDiffusion';
+export * from './math/WeightSolver';
+export * from './core/Skinning';
+export * from './core/Rig';

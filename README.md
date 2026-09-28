@@ -178,21 +178,6 @@ animate();
 
 ---
 
-## License
+## 📄 License
 
-[MIT](LICENSE) — iKi / Frozen Flame
-
----
-
-## 📜 Open Source & Commercial Use (MIT)
-
-This project is 100% open-source software under the **[MIT License](LICENSE)**.
-
-### 💼 Commercial Use & Free Redistribution
-You are explicitly permitted to use, modify, fork, integrate, package, and sell commercial products or SaaS built using this engine with **one visible attribution requirement**:
-> **Attribution Requirement**: You must include a visible credit to **nff747** in your application (e.g., `Powered by nff747` linking to [https://github.com/nff747](https://github.com/nff747) in your application UI, footer, about modal, or documentation).
-
-```html
-<!-- Example visible footer attribution -->
-<p>Powered by <a href="https://github.com/nff747" target="_blank">nff747</a></p>
-```
+MIT © [nff747](https://github.com/nff747)

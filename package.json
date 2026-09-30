@@ -35,7 +35,7 @@
     "procedural-animation",
     "webgpu"
   ],
-  "author": "iKi <nff747@users.noreply.github.com>",
+  "author": "nff747 <nff747@users.noreply.github.com>",
   "license": "MIT",
   "peerDependencies": {
     "three": ">=0.160.0"

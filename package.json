@@ -36,7 +36,7 @@
     "webgpu"
   ],
   "author": "nff747 <nff747@users.noreply.github.com>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "peerDependencies": {
     "three": ">=0.160.0"
   },

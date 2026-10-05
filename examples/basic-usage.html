@@ -70,10 +70,9 @@
       scene.add(helper);
 
       // 5. Add an IK target (e.g. move head)
-      let time = 0;
-      
+      let animId;
       function animate() {
-        requestAnimationFrame(animate);
+        animId = requestAnimationFrame(animate);
         time += 0.05;
         
         // Move target in a circle
@@ -95,6 +94,10 @@
         renderer.render(scene, camera);
       }
       animate();
+
+      window.addEventListener('beforeunload', () => {
+        if (animId) cancelAnimationFrame(animId);
+      });
     }
     
     init().catch(console.error);

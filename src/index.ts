@@ -6,3 +6,4 @@ export * from './math/HeatDiffusion';
 export * from './math/WeightSolver';
 export * from './core/Skinning';
 export * from './core/Rig';
+export * from './math/Bounds';

@@ -22,3 +22,9 @@ Minimalistic, high-performance interface architecture designed for zero friction
 2. Real-time GPU capability detection activates automatically
 3. Pre-baked interactive presets enable immediate inspection without configuration
 
+
+## Real-Time Frame Telemetry
+- Target: 16.6ms frame budget (60 FPS locked)
+- Low-overhead requestAnimationFrame timestamp delta tracking
+- Visual rolling history buffer (120 frames) with min/max/p99 latency indicators
+

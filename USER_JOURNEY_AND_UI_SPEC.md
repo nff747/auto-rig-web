@@ -16,3 +16,9 @@ Minimalistic, high-performance interface architecture designed for zero friction
 - `[1-5]`: Quick preset profile selector
 - Full ARIA landmarks across all dynamic panels
 
+
+## First-Run User Journey
+1. Zero-dependency launch: Open `examples/index.html` in Chrome/Edge/Brave
+2. Real-time GPU capability detection activates automatically
+3. Pre-baked interactive presets enable immediate inspection without configuration
+

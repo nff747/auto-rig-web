@@ -52,3 +52,8 @@ Minimalistic, high-performance interface architecture designed for zero friction
 - Clear diagnostic banner with direct links to browser flag settings
 - Fallback static snapshot rendering when WebGPU is unavailable
 
+
+## Frame Capture & Diagnostics Export
+- One-click canvas snapshot download in lossless WebP format
+- JSON telemetry export capturing active shader uniforms and timing profiles
+

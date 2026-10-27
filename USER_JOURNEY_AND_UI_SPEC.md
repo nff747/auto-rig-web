@@ -8,3 +8,11 @@ Minimalistic, high-performance interface architecture designed for zero friction
 - Contrast: Minimum 7:1 WCAG AAA on all text
 - Accent: Subtle monochrome with targeted cyan/emerald telemetry accents
 
+
+## Keyboard Navigation & Shortcuts
+- `[H]` or `[Esc]`: Toggle HUD and Controls visibility
+- `[Space]`: Pause / Resume simulation passes
+- `[R]`: Reset camera view to default orientation
+- `[1-5]`: Quick preset profile selector
+- Full ARIA landmarks across all dynamic panels
+

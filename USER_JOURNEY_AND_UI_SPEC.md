@@ -34,3 +34,9 @@ Minimalistic, high-performance interface architecture designed for zero friction
 - Two-finger pinch-to-zoom and one-finger orbit rotation gesture mapping
 - Safe-area inset compensation for mobile status and navigation bars
 
+
+## Preset Inspection Profiles
+- `High Fidelity`: Max sample count, full volumetric shadow passes
+- `Balanced`: Standard 60 FPS target on integrated GPUs
+- `Performance`: Minimal ray steps, optimized for low-power mobile hardware
+

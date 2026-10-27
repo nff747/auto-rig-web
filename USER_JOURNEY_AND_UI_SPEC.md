@@ -40,3 +40,9 @@ Minimalistic, high-performance interface architecture designed for zero friction
 - `Balanced`: Standard 60 FPS target on integrated GPUs
 - `Performance`: Minimal ray steps, optimized for low-power mobile hardware
 
+
+## Micro-Interactions & Transitions
+- Native CSS spring curves for slider drags and button states
+- Non-intrusive focus rings on all interactive elements
+- Zero-layout-shift (CLS = 0) state transitions
+

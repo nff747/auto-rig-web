@@ -28,3 +28,9 @@ Minimalistic, high-performance interface architecture designed for zero friction
 - Low-overhead requestAnimationFrame timestamp delta tracking
 - Visual rolling history buffer (120 frames) with min/max/p99 latency indicators
 
+
+## Responsive Viewport & Touch Layout
+- Drawer auto-collapses on screens narrower than 768px
+- Two-finger pinch-to-zoom and one-finger orbit rotation gesture mapping
+- Safe-area inset compensation for mobile status and navigation bars
+

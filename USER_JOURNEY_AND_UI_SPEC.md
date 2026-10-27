@@ -57,3 +57,9 @@ Minimalistic, high-performance interface architecture designed for zero friction
 - One-click canvas snapshot download in lossless WebP format
 - JSON telemetry export capturing active shader uniforms and timing profiles
 
+
+## Interactive Exploration Guide
+- Step-by-step walkthrough of shader parameters and physical units
+- Common workflows for graphics engineers, researchers, and technical recruiters
+- Live code snippets demonstrating how to embed into external canvas pipelines
+

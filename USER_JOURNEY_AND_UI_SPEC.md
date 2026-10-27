@@ -46,3 +46,9 @@ Minimalistic, high-performance interface architecture designed for zero friction
 - Non-intrusive focus rings on all interactive elements
 - Zero-layout-shift (CLS = 0) state transitions
 
+
+## Graceful Degradation & Diagnostics
+- Automatic detection of `navigator.gpu` support
+- Clear diagnostic banner with direct links to browser flag settings
+- Fallback static snapshot rendering when WebGPU is unavailable
+

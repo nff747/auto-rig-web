@@ -1,0 +1,8 @@
+{
+  "name": "auto-rig-web-baseline",
+  "version": "1.0.0",
+  "arenaBytes": 16777216,
+  "alignment": 64,
+  "circuitBreakerThresholdMs": 500,
+  "zeroAllocation": true
+}

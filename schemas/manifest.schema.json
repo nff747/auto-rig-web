@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Auto Rig Web Engine Configuration Manifest",
+  "type": "object",
+  "properties": {
+    "engine": { "type": "string", "const": "auto-rig-web" },
+    "version": { "type": "string" },
+    "arenaBytes": { "type": "integer", "minimum": 1048576 },
+    "zeroAllocation": { "type": "boolean", "default": true }
+  },
+  "required": ["engine", "version"]
+}

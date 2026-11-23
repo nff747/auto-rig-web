@@ -5,7 +5,7 @@
 
 # 🤖 auto-rig-web
 
-**Zero-Click, Browser-Local Character Rigging Pipeline**
+**Browser-Local ONNX Character Rigging & CCDIK Kinematics Pipeline**
 
 [![Powered by nff747](https://img.shields.io/badge/Powered%20by-nff747-111111?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nff747)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)

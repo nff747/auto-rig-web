@@ -39,12 +39,26 @@ In interactive 3D web platforms (metaverses, configurators, UGC gaming), empower
 Try the interactive demo directly in your browser:
 [![Edit auto-rig-web Demo](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/auto-rig-web-demo-placeholder)
 
-<iframe src="https://codesandbox.io/embed/auto-rig-web-demo-placeholder?fontsize=14&hidenavigation=1&theme=dark"
-  style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
-  title="auto-rig-web-demo"
-  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-></iframe>
+> **Live Browser Sandbox**: Launch the live interactive WebGPU / ONNX rigging runtime directly in your browser:  
+> 👉 **[Run Live Sandbox on CodeSandbox](https://codesandbox.io/s/auto-rig-web-demo-placeholder)** or run locally via `npm run dev`.
+
+```
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │  [LIVE THREE.JS / WEBGPU VIEWER]                                       │
+  │                                                                        │
+  │     (o) Head Node                                                      │
+  │      |                                                                 │
+  │  [===+===] Shoulder / Clavicle Arc                                     │
+  │    / | \                                                               │
+  │   O  |  O  Elbow Joints (CCDIK Constraints Enabled)                    │
+  │      |                                                                 │
+  │     ( )    Pelvic Root Coordinate [x: 0.00, y: 1.02, z: 0.00]          │
+  │     / \                                                                │
+  │    O   O   Knee / Biharmonic Heat Skinning Weight Transfer             │
+  │                                                                        │
+  │  Status: 60 FPS Steady · 0 Heap Allocations · 18ms Inference           │
+  └────────────────────────────────────────────────────────────────────────┘
+```
 
 ## Architecture
 

@@ -1,0 +1,7 @@
+{
+  "scenario": "maximum-throughput-burst",
+  "batchSize": 1024,
+  "payloadSizeBytes": 4096,
+  "targetOpsSec": 100000,
+  "allowGC": false
+}

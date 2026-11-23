@@ -1,0 +1,8 @@
+{
+  "edgeCases": [
+    { "description": "Zero length buffer", "length": 0, "expectedStatus": "REJECTED" },
+    { "description": "Unaligned 63-byte slice", "length": 63, "expectedStatus": "NORMALIZED" },
+    { "description": "Exact 64-byte single cacheline", "length": 64, "expectedStatus": "OPTIMAL" },
+    { "description": "Oversized boundary overflow", "length": 134217728, "expectedStatus": "REJECTED" }
+  ]
+}

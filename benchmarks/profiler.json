@@ -1,0 +1,8 @@
+{
+  "engine": "auto-rig-web",
+  "profile_version": "2026.11",
+  "hardware_targets": ["x86_64_avx2", "apple_silicon_uma", "webgpu_compute"],
+  "target_latency_budget_ms": 0.5,
+  "vram_ceiling_mb": 256,
+  "zero_gc_threshold": true
+}

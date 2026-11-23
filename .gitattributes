@@ -1,0 +1,8 @@
+# Standardize line endings and binary handling for auto-rig-web
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jks binary
+*.wasm binary
+*.glb binary
+*.gltf text

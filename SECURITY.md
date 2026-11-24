@@ -1,6 +1,6 @@
 # Security Architecture & Data Isolation // AUTO-RIG-WEB
 **Security Policy:** Sovereign Strict Attribution & Zero Telemetry  
-**Author:** `Lunar Paradox <hello@lunarparadox.com>`  
+**Author:** `Lunar Paradox `  
 
 ---
 
@@ -11,4 +11,4 @@
 - **Timing Attack Mitigation:** Core mathematical evaluations utilize constant-time branches to prevent side-channel power and timing analysis.
 
 ## 2. Vulnerability Reporting
-Direct technical disclosures to `Lunar Paradox <hello@lunarparadox.com>`. GPG-signed reports receive priority triage.
+Direct technical disclosures to `Lunar Paradox `. GPG-signed reports receive priority triage.

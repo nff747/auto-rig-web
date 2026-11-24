@@ -35,7 +35,7 @@
     "procedural-animation",
     "webgpu"
   ],
-  "author": "nff747 <nff747@users.noreply.github.com>",
+  "author": "Lunar Paradox <engineering@lunarparadox.com>",
   "license": "Apache-2.0",
   "peerDependencies": {
     "three": ">=0.160.0"
@@ -60,5 +60,5 @@
   "bugs": {
     "url": "https://github.com/nff747/auto-rig-web/issues"
   },
-  "homepage": "https://github.com/nff747/auto-rig-web#readme"
+  "homepage": "https://lunarparadox.com"
 }
